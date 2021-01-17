@@ -1,9 +1,8 @@
 import './App.css';
 import Customer from './components/Customer';
-
+import CircularProgress from '@material-ui/core/CircularProgress';
 import React from 'react';
 import Paper from '@material-ui/core/Paper';
-
 import Table from '@material-ui/core/Table';
 import TableHead from '@material-ui/core/TableHead';
 import TableBody from '@material-ui/core/TableBody';
@@ -19,6 +18,9 @@ root:{
 },
 table:{
   minWidth:1080
+},
+progress:{
+  margin: theme.spacing.unit * 2
 }
 });
 //고객 데이터를 서버에 접속해서 가져올 수 있어야 함.
@@ -27,11 +29,13 @@ table:{
 class App extends React.Component{
   //변경할 수 있는 데이터
   state={
-      customers:''
+      customers:'',
+      completed: 0
   }
   //모든 컴포넌트가 마운트가 완료되었을 때 실행되는 것
   // 이곳에서 api를 불러와야 함.
   componentDidMount(){
+    this.timer = setInterval(this.progress, 20);
     this.callApi()
       .then(res => this.setState({customers:res}))
       .catch(err => console.log(err));
@@ -41,6 +45,10 @@ class App extends React.Component{
     const response = await fetch('/api/customers');
     const body = await response.json();
     return body;
+  }
+  progress = ()=>{
+    const {completed}=this.state;
+    this.setState({completed: completed>=100 ? 0 : completed+1});
   }
   //props는 변경 불가한 데이터
   render(){
@@ -62,7 +70,12 @@ class App extends React.Component{
       {this.state.customers? 
       this.state.customers.map(c=>{
         return(<Customer key={c.id} id={c.id} image={c.image} name={c.name} birthday={c.birthday} gender={c.gender} job={c.job} /> )
-      })  : ''}  
+      })  : 
+      <TableRow>
+        <TableCell colSpan="6" align = "center">
+          <CircularProgress className={classes.progress} variant="determinate" value={this.state.completed}/>
+        </TableCell>
+      </TableRow>}  
       </TableBody>
       </Table>
      
